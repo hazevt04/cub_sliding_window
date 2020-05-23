@@ -57,7 +57,6 @@ int my_test( const int window_size, const int num_vals,
    
    cuda::launch(
       sliding_window,
-      //cuda::launch_configuration_t( blocks_per_grid, threads_per_block ),
       launch_configuration,
       d_results.get(), d_vals.get(), window_size, num_vals
    );
