@@ -28,6 +28,28 @@ my_float2& my_float2::operator=( const my_float2& other ) {
    return *this;
 }
 
+my_float2 my_float2::operator+( const my_float2& other ) {
+   my_float2 result;
+   result.val.x = val.x + other.val.x;
+   result.val.y = val.y + other.val.y;
+   return result;
+}
+
+
+my_float2 my_float2::operator/( const my_float2& other ) {
+   my_float2 result;
+   result.val.x = val.x / other.val.x;
+   result.val.y = val.y / other.val.y;
+   return result;
+}
+
+my_float2 my_float2::operator/( const float& other ) {
+   my_float2 result;
+   result.val.x = val.x / other;
+   result.val.y = val.y / other;
+   return result;
+}
+
 // Move constructor
 my_float2::my_float2( my_float2&& other ) noexcept {
    val.x = other.val.x;

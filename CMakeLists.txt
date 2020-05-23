@@ -18,7 +18,8 @@ find_package(CUDAAPIWrappers QUIET REQUIRED)
 
 # Selects GPU arch flags for nvcc based on target_CUDA_architectures
 # Xavier is compute capability 7.2, Tegra X2 is 6.1
-cuda_select_nvcc_arch_flags(ARCH_FLAGS 7.2)
+#cuda_select_nvcc_arch_flags(ARCH_FLAGS 7.2)
+cuda_select_nvcc_arch_flags(ARCH_FLAGS 6.1)
 
 list(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
 list(APPEND CUDA_NVCC_FLAGS "--ptxas-options=-v")

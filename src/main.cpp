@@ -4,8 +4,8 @@
 
 
 int main(int argc, char **argv) {
-   int window_size = 3;
-   int num_vals = 5;
+   int window_size = 50;
+   int num_vals = 1024;
    bool debug = true;
    int status = SUCCESS;
 

@@ -24,6 +24,12 @@ class my_float2 {
       // Move Assignment Operator
       my_float2& operator=( my_float2&& other ) noexcept;
       
+      my_float2 operator+( const my_float2& other );
+      
+      my_float2 operator/( const my_float2& other );
+      
+      my_float2 operator/( const float& other );
+
       friend std::ostream& operator<<(std::ostream& my_ostream, const my_float2& f2);
 
    private: 

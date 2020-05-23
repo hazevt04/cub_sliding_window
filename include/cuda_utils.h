@@ -123,5 +123,19 @@
 
 #endif
 
+#define ADD_COMPLEX( sum, op1, op2 ) { \
+   (sum).x = (op1).x + (op2).x; \
+   (sum).y = (op1).y + (op2).y; \
+}
+
+#define ADD_COMPLEX_WITH_SCALAR( sum, op1, op2 ) { \
+   (sum).x = (op1).x + (op2); \
+   (sum).y = (op1).y + (op2); \
+}
+
+#define ASSIGN_COMPLEX( lhs, rhs ) { \
+   (lhs).x = (rhs).x; \
+   (lhs).y = (rhs).y; \
+}
 
 #endif // ifndef _CUDA_UTILS_H_

@@ -1,3 +1,4 @@
+//#include "my_float2.h"
 #include "sliding_window_kernel.cuh"
 
 //////////////////////////////////////
@@ -5,22 +6,38 @@
 // Calculate sliding window average
 //////////////////////////////////////
 __global__ void sliding_window(float2* __restrict__ results, float2* const __restrict__ vals, 
-    const int window_size, const int num_items ) {
+   const int window_size, const int num_vals ) {
    
    // Assuming one stream
    int global_index = 1*(blockIdx.x * blockDim.x) + 1*(threadIdx.x);
    // stride is set to the total number of threads in the grid
    int stride = blockDim.x * gridDim.x;
-   for (int index = global_index; index < num_items; index+=stride) {
+   for (int index = global_index; index < num_vals; index+=stride) {
       float2 t_val = {0.0, 0.0};
       for (int w_index = 0; w_index < window_size; w_index++) {
-        t_val.x = t_val.x + vals[index + w_index].x;
-        t_val.y = t_val.y + vals[index + w_index].y;
+         ADD_COMPLEX( t_val, t_val, vals[index + w_index] );      
       }
       DIVIDE_COMPLEX_BY_SCALAR( t_val, t_val, (float)window_size );
 
-      results[index].x = t_val.x;
-      results[index].y = t_val.y;
+      ASSIGN_COMPLEX( results[index], t_val );
    }
 }
 
+// __global__ void sliding_window(my_float2* __restrict__ results, my_float2* const __restrict__ vals,
+//     const int window_size, const int num_vals ) {
+//
+//    // Assuming one stream
+//    int global_index = 1*(blockIdx.x * blockDim.x) + 1*(threadIdx.x);
+//    // stride is set to the total number of threads in the grid
+//    int stride = blockDim.x * gridDim.x;
+//    for (int index = global_index; index < num_vals; index+=stride) {
+//       my_float2 t_val;
+//       for (int w_index = 0; w_index < window_size; w_index++) {
+//         t_val = t_val + vals[index + w_index];
+//       }
+//
+//       t_val = t_val / (float)window_size;
+//
+//       results[index] = t_val;
+//    }
+// }

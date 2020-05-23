@@ -12,5 +12,6 @@
 #define RAND_MAX_RECIP (1.0f/(float)RAND_MAX)
 
 my_float2 get_rand_my_float2( void );
+float2 get_rand_float2( void );
 int my_test( const int window_size, const int num_vals, const bool debug );
 #endif
