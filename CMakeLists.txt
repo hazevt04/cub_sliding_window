@@ -32,7 +32,6 @@ set(EXEC_NAME "${CMAKE_PROJECT_NAME}")
 set(SRCS
    "src/utils.cpp"
    "src/my_file_io_funcs.cpp"
-   "src/my_float2.cpp"
    "src/sliding_window_kernel.cu"
    "src/sliding_window.cu"
    "src/main.cpp"
