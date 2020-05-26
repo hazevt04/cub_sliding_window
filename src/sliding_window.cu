@@ -104,36 +104,26 @@ int run_kernel( const int window_size, const int num_vals,
    auto d_results = cuda::memory::device::make_unique<float2[]>(current_device, num_vals_windowed);
 
    Time_Point start;
-   Duration_ms duration_ms;
+   Duration_ms gpu_ms;
 
    start = Steady_Clock::now();
    cuda::memory::copy( d_vals.get(), h_vals.get(), size_vals );
-   duration_ms = Steady_Clock::now() - start;
    
-   debug_printf( debug, "GPU: %f milliseconds to transfer %d values from the CPU to the GPU\n",
-      duration_ms.count(), num_vals );
-
    if ( debug ) {
       std::cout << "CUDA kernel launch with " << blocks_per_grid
          << " blocks of " << threads_per_block << " threads\n";
    }
 
-   start = Steady_Clock::now();
    cuda::launch(
       sliding_window,
       launch_configuration,
       d_results.get(), d_vals.get(), window_size, num_vals_windowed
    );
-   duration_ms = Steady_Clock::now() - start;
-   debug_printf( true, "%d vals, %f ms\n", num_vals, duration_ms.count() );
-   debug_printf( debug, "GPU Func() took %f milliseconds to process %d values\n", duration_ms.count(), 
-      num_vals );
 
-   start = Steady_Clock::now();
    cuda::memory::copy( h_results.get(), d_results.get(), size_vals_windowed );
-   duration_ms = Steady_Clock::now() - start;
-   debug_printf( debug, "GPU: %f milliseconds to transfer %d values from the GPU to the CPU\n", 
-      duration_ms.count(), num_vals_windowed );
+
+   gpu_ms = Steady_Clock::now() - start;
+   debug_printf( true, "%d vals, %d window size, %f ms\n", num_vals, window_size, gpu_ms.count() );
 
    if ( debug ) {
       std::cout << "Results: \n";
