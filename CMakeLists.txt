@@ -33,7 +33,7 @@ set(SRCS
    "src/utils.cpp"
    "src/my_file_io_funcs.cpp"
    "src/sliding_window_kernel.cu"
-   "src/sliding_window.cu"
+   "src/SlidingWindow.cu"
    "src/main.cpp"
    )
 
