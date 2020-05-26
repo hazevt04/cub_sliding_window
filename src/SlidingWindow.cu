@@ -151,33 +151,24 @@ void SlidingWindow::run() {
    gen_expected();
    
    start = Steady_Clock::now();
-   cuda::memory::copy( d_vals.get(), h_vals.get(), size_vals );
-   duration_ms = Steady_Clock::now() - start;
    
-   debug_printf( debug, "GPU: %f milliseconds to transfer %d values from the CPU to the GPU\n",
-      duration_ms.count(), num_vals );
-
+   cuda::memory::copy( d_vals.get(), h_vals.get(), size_vals );
+   
    if ( debug ) {
       std::cout << "CUDA kernel launch with " << blocks_per_grid
          << " blocks of " << threads_per_block << " threads\n";
    }
 
-   start = Steady_Clock::now();
    cuda::launch(
       sliding_window,
       launch_configuration,
       d_results.get(), d_vals.get(), window_size, num_results
    );
-   duration_ms = Steady_Clock::now() - start;
-   debug_printf( true, "%d vals, %f ms\n", num_vals, duration_ms.count() );
-   debug_printf( debug, "GPU Func() took %f milliseconds to process %d values\n", duration_ms.count(), 
-      num_vals );
 
-   start = Steady_Clock::now();
    cuda::memory::copy( h_results.get(), d_results.get(), size_results );
+   
    duration_ms = Steady_Clock::now() - start;
-   debug_printf( debug, "GPU: %f milliseconds to transfer %d values from the GPU to the CPU\n", 
-      duration_ms.count(), num_results );
+   debug_printf( true, "%d vals, %d window size, %f ms\n", num_vals, window_size, duration_ms.count() );
 
    if ( debug ) {
       std::cout << "Results: \n";
