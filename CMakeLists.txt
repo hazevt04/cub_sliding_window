@@ -1,7 +1,7 @@
 cmake_minimum_required( VERSION 2.8.0 )
 
 
-project( cub_sliding_window LANGUAGES CXX CUDA )
+project( test_cuda_api_wrapper LANGUAGES CXX CUDA )
 
 message( "CMAKE_MODULE_PATH is ${CMAKE_MODULE_PATH}" )
 
