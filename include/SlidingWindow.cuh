@@ -27,9 +27,9 @@ class SlidingWindow {
       SlidingWindow( const SlidingWindow& other );
       SlidingWindow& operator=( const SlidingWindow& other );
 
-      std::unique_ptr<float2> h_vals;
-      std::unique_ptr<float2> h_results;
-      std::unique_ptr<float2> expected_results;
+      cuda::memory::host::unique_ptr<float2 []> h_vals;
+      cuda::memory::host::unique_ptr<float2 []> h_results;
+      cuda::memory::host::unique_ptr<float2 []> expected_results;
       
       cuda::memory::device::unique_ptr<float2 []> d_vals;
       cuda::memory::device::unique_ptr<float2 []> d_results;

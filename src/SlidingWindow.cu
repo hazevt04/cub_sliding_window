@@ -6,9 +6,9 @@ SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size, bool new_de
    num_results = num_vals - window_size;
    debug = new_debug;
 
-   h_vals = std::unique_ptr<float2>(new float2[new_num_vals]);
-   h_results = std::unique_ptr<float2>(new float2[num_results]);
-   expected_results = std::unique_ptr<float2>(new float2[num_results]);
+   h_vals = cuda::memory::host::make_unique<float2[]>( num_vals );
+   h_results = cuda::memory::host::make_unique<float2[]>( num_results );
+   expected_results = cuda::memory::host::make_unique<float2[]>( num_results );
 
    auto current_device = cuda::device::current::get();
    d_vals = cuda::memory::device::make_unique<float2[]>(current_device, new_num_vals);
