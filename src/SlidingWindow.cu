@@ -1,3 +1,4 @@
+#include "SlidingWindowConfig.cuh"
 #include "SlidingWindow.cuh"
 
 SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size, 
@@ -16,6 +17,24 @@ SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size,
    d_results = cuda::memory::device::make_unique<float2[]>(current_device, num_results);
    
 }
+
+
+SlidingWindow::SlidingWindow( const SlidingWindowConfig& config ):
+      num_vals( config.num_vals ),
+      window_size( config.window_size ),
+      num_results( config.num_results ),
+      debug( config.debug ) {
+
+   h_vals = cuda::memory::host::make_unique<float2[]>( config.num_vals );
+   h_results = cuda::memory::host::make_unique<float2[]>( config.num_results );
+   expected_results = cuda::memory::host::make_unique<float2[]>( config.num_results );
+
+   auto current_device = cuda::device::current::get();
+   d_vals = cuda::memory::device::make_unique<float2[]>(current_device, config.num_vals);
+   d_results = cuda::memory::device::make_unique<float2[]>(current_device, config.num_results);
+   
+}
+
 
 // Move Constructor
 SlidingWindow::SlidingWindow( SlidingWindow&& other ) noexcept {
@@ -102,8 +121,10 @@ void SlidingWindow::gen_expected() {
       expected_results.get()[0].x += h_vals.get()[s_index].x;
       expected_results.get()[0].y += h_vals.get()[s_index].y;
    }
-   std::cout << __func__ << "(): expected_results.get()[0] = {" << expected_results.get()[0].x
-     << ", " << expected_results.get()[0].y << "}\n";
+   if ( debug ) {
+      std::cout << __func__ << "(): expected_results.get()[0] = {" << expected_results.get()[0].x
+        << ", " << expected_results.get()[0].y << "}\n";
+   }
 
    float prev_x_sum = expected_results.get()[0].x;
    float prev_y_sum = expected_results.get()[0].y;

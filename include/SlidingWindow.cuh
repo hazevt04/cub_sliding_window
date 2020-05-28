@@ -6,6 +6,7 @@
 #include <memory>
 #include "cuda_utils.h"
 #include "sliding_window_kernel.cuh"
+#include "SlidingWindowConfig.cuh"
 
 class SlidingWindow {
    public:
@@ -13,6 +14,7 @@ class SlidingWindow {
          debug = false;
       }
       SlidingWindow( int new_num_vals, int new_window_size, bool new_debug );
+      SlidingWindow( const SlidingWindowConfig& config );
       // Move constructor
       SlidingWindow( SlidingWindow&& other ) noexcept;
       // Move assignment constructor
