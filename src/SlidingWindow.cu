@@ -1,12 +1,13 @@
 #include "SlidingWindow.cuh"
 
-SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size, bool new_debug = false ) {
-   num_vals = new_num_vals;
-   window_size = new_window_size;
-   num_results = num_vals - window_size;
-   debug = new_debug;
+SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size, 
+   bool new_debug = false ) : num_vals( new_num_vals ),
+      window_size( new_window_size ),
+      debug( new_debug ) {
 
-   h_vals = cuda::memory::host::make_unique<float2[]>( num_vals );
+   num_results = new_num_vals - new_window_size;
+
+   h_vals = cuda::memory::host::make_unique<float2[]>( new_num_vals );
    h_results = cuda::memory::host::make_unique<float2[]>( num_results );
    expected_results = cuda::memory::host::make_unique<float2[]>( num_results );
 
@@ -20,8 +21,8 @@ SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size, bool new_de
 SlidingWindow::SlidingWindow( SlidingWindow&& other ) noexcept {
    num_vals = other.num_vals;
    window_size = other.window_size;
-   num_results = other.num_results;
    debug = other.debug;
+   num_results = other.num_results;
 
    h_vals = std::move( other.h_vals );
    h_results = std::move(other.h_results);
@@ -101,8 +102,8 @@ void SlidingWindow::gen_expected() {
       expected_results.get()[0].x += h_vals.get()[s_index].x;
       expected_results.get()[0].y += h_vals.get()[s_index].y;
    }
-   debug_printf( debug, "%s(): expected_results.get()[0].= %f, %f\n", __func__, 
-      expected_results.get()[0].x, expected_results.get()[0].y );    
+   std::cout << __func__ << "(): expected_results.get()[0] = {" << expected_results.get()[0].x
+     << ", " << expected_results.get()[0].y << "}\n";
 
    float prev_x_sum = expected_results.get()[0].x;
    float prev_y_sum = expected_results.get()[0].y;
@@ -168,7 +169,7 @@ void SlidingWindow::run() {
    cuda::memory::copy( h_results.get(), d_results.get(), size_results );
    
    duration_ms = Steady_Clock::now() - start;
-   debug_printf( true, "%d vals, %d window size, %f ms\n", num_vals, window_size, duration_ms.count() );
+   std::cout << num_vals << "," << window_size << "," << duration_ms.count() << ";\n";
 
    if ( debug ) {
       std::cout << "Results: \n";
