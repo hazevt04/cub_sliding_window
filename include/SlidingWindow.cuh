@@ -24,6 +24,7 @@ class SlidingWindow {
    protected:
       void gen_vals();
       void gen_expected();
+      void check_results();
    private:
       // No copying allowed!
       SlidingWindow( const SlidingWindow& other );

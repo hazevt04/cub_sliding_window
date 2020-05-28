@@ -135,6 +135,34 @@ void SlidingWindow::gen_expected() {
       prev_x_sum = expected_results.get()[index].x;
       prev_y_sum = expected_results.get()[index].y;
    }
+
+
+   for ( int index = 0; index < num_results; ++index ) {
+      expected_results.get()[index].x /= window_size;
+      expected_results.get()[index].y /= window_size;
+   }
+}
+
+
+void SlidingWindow::check_results() {
+   try {
+      for ( int index = 0; index < num_results; ++index ) {
+         if (( expected_results.get()[index].x != h_results.get()[index].x ) || 
+            ( expected_results.get()[index].y != h_results.get()[index].y )) {
+            
+            std::cout << "Expected Result " << index 
+               << ": {" << expected_results.get()[index].x
+               << "," << expected_results.get()[index].y
+               << "} does not match the actual " 
+               << ": {" << h_results.get()[index].x
+               << "," << h_results.get()[index].y 
+               << "}\n";
+            throw std::runtime_error("Mismatch in result from expected.");
+         } 
+      } // for ( int index = 0; index < num_results; ++index ) {
+   } catch( std::exception& ex ) {
+      std::cout << "ERROR: " << ex.what() << "\n"; 
+   }
 }
 
 
@@ -169,9 +197,6 @@ void SlidingWindow::run() {
    size_t size_vals = num_vals * sizeof(float2);
    size_t size_results = num_results * sizeof(float2);
 
-   gen_vals();
-   gen_expected();
-   
    start = Steady_Clock::now();
    
    cuda::memory::copy( d_vals.get(), h_vals.get(), size_vals );
@@ -183,6 +208,9 @@ void SlidingWindow::run() {
 
    cuda::launch(
       sliding_window,
+      //sliding_window_rolled_2x_inner,
+      //sliding_window_rolled_4x_inner,
+      //sliding_window_rolled_8x_inner,
       launch_configuration,
       d_results.get(), d_vals.get(), window_size, num_results
    );
@@ -191,6 +219,8 @@ void SlidingWindow::run() {
    
    duration_ms = Steady_Clock::now() - start;
    std::cout << num_vals << "," << window_size << "," << duration_ms.count() << ";\n";
+
+   check_results();
 
    if ( debug ) {
       std::cout << "Results: \n";
