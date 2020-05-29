@@ -4,6 +4,8 @@
 #include <algorithm>
 #include <random>
 #include <memory>
+#include <iomanip>
+
 #include "cuda_utils.h"
 #include "sliding_window_kernel.cuh"
 #include "SlidingWindowConfig.cuh"

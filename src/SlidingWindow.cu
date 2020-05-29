@@ -146,18 +146,24 @@ void SlidingWindow::gen_expected() {
 
 void SlidingWindow::check_results() {
    try {
+      constexpr float comp_precision = 1.0;
+      constexpr int num_places = 8;
       for ( int index = 0; index < num_results; ++index ) {
-         if (( expected_results.get()[index].x != h_results.get()[index].x ) || 
-            ( expected_results.get()[index].y != h_results.get()[index].y )) {
+         if (( fabs( expected_results.get()[index].x - h_results.get()[index].x ) > comp_precision ) || 
+            ( fabs( expected_results.get()[index].y - h_results.get()[index].y ) > comp_precision )) {
             
             std::cout << "Expected Result " << index 
-               << ": {" << expected_results.get()[index].x
+               << ": {"
+               << std::setprecision(num_places) 
+               << expected_results.get()[index].x
                << "," << expected_results.get()[index].y
-               << "} does not match the actual " 
+               << "} is not close to the actual "
+               << index  
+               << std::setprecision(num_places) 
                << ": {" << h_results.get()[index].x
                << "," << h_results.get()[index].y 
                << "}\n";
-            throw std::runtime_error("Mismatch in result from expected.");
+            throw std::runtime_error("Result too different from expected.");
          } 
       } // for ( int index = 0; index < num_results; ++index ) {
    } catch( std::exception& ex ) {
@@ -208,9 +214,6 @@ void SlidingWindow::run() {
 
    cuda::launch(
       sliding_window,
-      //sliding_window_rolled_2x_inner,
-      //sliding_window_rolled_4x_inner,
-      //sliding_window_rolled_8x_inner,
       launch_configuration,
       d_results.get(), d_vals.get(), window_size, num_results
    );
