@@ -2,12 +2,15 @@
 #include <getopt.h>
 #include "SlidingWindow.cuh"
 
-void print_usage( ) {
-   std::cout <<
+void print_usage( const char* prog_name ) {
+   std::cout << prog_name << " [options]\n"
+   "Calculate num_vals sliding window averages, for a given window_size.\n"
+   "Outputs the num_vals,window_size, and GPU execution time in milliseconds\n"
+   " Options:\n"
    "--num_vals <n>:     Number of Values\n"
    "--window_size <w>:  Window Size\n"
    "--debug <d>:        Increased verbosity for debug\n"
-   "--help:             Show help\n";
+   "--help <h>:         Show help\n";
     exit(1);
 }
 
@@ -44,7 +47,7 @@ void get_args( args_t& args, int argc, char** argv ) {
             args.window_size = std::strtol(optarg, nullptr, 10);
             break;
          case 'h': // -h or --help
-            print_usage();
+            print_usage( argv[0] );
             break;
          case 'd': // -d or --help
             args.debug = true;

@@ -1,0 +1,17 @@
+
+Rolled:
+./test_cuda_api_wrapper -n 1000000 -w 4000
+1000000,4000,59.8583;
+
+2x Unrolled:
+./test_cuda_api_wrapper -n 1000000 -w 4000
+1000000,4000,69.1424;
+
+4x Unrolled!!!!!
+./test_cuda_api_wrapper -n 1000000 -w 4000
+1000000,4000,41.9598;
+
+8x Unrolled:
+./test_cuda_api_wrapper -n 1000000 -w 4000
+1000000,4000,90.0254;
+

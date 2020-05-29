@@ -121,10 +121,6 @@ void SlidingWindow::gen_expected() {
       expected_results.get()[0].x += h_vals.get()[s_index].x;
       expected_results.get()[0].y += h_vals.get()[s_index].y;
    }
-   if ( debug ) {
-      std::cout << __func__ << "(): expected_results.get()[0] = {" << expected_results.get()[0].x
-        << ", " << expected_results.get()[0].y << "}\n";
-   }
 
    float prev_x_sum = expected_results.get()[0].x;
    float prev_y_sum = expected_results.get()[0].y;
@@ -140,6 +136,13 @@ void SlidingWindow::gen_expected() {
    for ( int index = 0; index < num_results; ++index ) {
       expected_results.get()[index].x /= window_size;
       expected_results.get()[index].y /= window_size;
+   }
+   
+   if ( debug ) {
+      std::cout << __func__ << "(): expected_results.get()[0] = {" 
+         << expected_results.get()[0].x
+         << ", " 
+         << expected_results.get()[0].y << "}\n";
    }
 }
 
