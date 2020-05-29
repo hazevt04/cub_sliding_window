@@ -11,4 +11,13 @@
 __global__ void sliding_window(float2* __restrict__ results, float2* const __restrict__ vals, 
     const int window_size, const int num_results );
 
+__global__ void sliding_window_unrolled_2x_inner(float2* __restrict__ results, float2* const __restrict__ vals, 
+    const int window_size, const int num_results );
+
+__global__ void sliding_window_unrolled_4x_inner(float2* __restrict__ results, float2* const __restrict__ vals, 
+    const int window_size, const int num_results );
+
+__global__ void sliding_window_unrolled_8x_inner(float2* __restrict__ results, float2* const __restrict__ vals, 
+    const int window_size, const int num_results );
+
 #endif
