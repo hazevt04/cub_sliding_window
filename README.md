@@ -9,20 +9,20 @@ Computes the sliding window average for a given a number of values and a window 
 This was used mainly for trying out newer C++11 features such as smart pointers and move semantics with CUDA. 
 The CUDA memory allocation and deallocation is done more robustly 
 using the RAII method, rather than manually, thanks to the cuda-api-wrapper functions. 
-This is could actually be used a CUDA template.
+This is could actually be used as a CUDA template.
 
 It was also used to experiment with CUDA kernel optimization techniques
 
 ## Dependencies
 
 Development environment:
-Ubuntu 18.04.1 (Linux Kernel Release 5.3.0-53-generic, Kernel Version: #47~18.04.1-Ubuntu SMP)
-Intel Core i5 8300H, 2.3GHz, 16 GB RAM
-nVidia Geforce GTX 1050 (Pascal Architecture, Compute Capability 6.1)
-nVidia Driver Version 440.59
-CUDA 10.2
-g++/gcc 7.5
-Cmake 3.10.2
+- Ubuntu 18.04.1 (Linux Kernel Release 5.3.0-53-generic, Kernel Version: #47~18.04.1-Ubuntu SMP)
+- Intel Core i5 8300H, 2.3GHz, 16 GB RAM
+- nVidia Geforce GTX 1050 (Pascal Architecture, Compute Capability 6.1)
+- nVidia Driver Version 440.59
+- CUDA 10.2
+- g++/gcc 7.5
+- Cmake 3.10.2
 
 ## Building
 
@@ -55,3 +55,6 @@ Example command line:
 
 The last value output is the time in milliseconds for the overall GPU execution including memory transfer to and from the GPU
 
+## FindCUDAAPIWrapper CMake Module
+I also included my version of the FindCUDAAPIWrapper Cmake module and even a BASH script to install it. This will help my CMakeLists.txt find
+Cmake module for cuda-api-wrapper

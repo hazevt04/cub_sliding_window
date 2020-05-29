@@ -8,16 +8,12 @@ message( "CMAKE_MODULE_PATH is ${CMAKE_MODULE_PATH}" )
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-#set(CUDA_SEPARABLE_COMPILATION ON)
 find_package(CUDA QUIET REQUIRED)
 find_package(CUDAAPIWrappers QUIET REQUIRED)
-#find_package(CompileWithWarnings QUIET REQUIRED)
 #include(CompileWithWarnings)
 
-#add_definitions( -Wno-pedantic )
-
 # Selects GPU arch flags for nvcc based on target_CUDA_architectures
-# Xavier is compute capability 7.2, Tegra X2 is 6.1
+# Jetson Xavier GPUs are compute capability 7.2, Tegra X2, and Geforce GTX 1050 are 6.1
 #cuda_select_nvcc_arch_flags(ARCH_FLAGS 7.2)
 cuda_select_nvcc_arch_flags(ARCH_FLAGS 6.1)
 
@@ -37,15 +33,10 @@ set(SRCS
    "src/main.cpp"
    )
 
-# CUDA CUB has no CMake module.
-# It's just a bunch of CUDA headers actually
-set(CUB_INCLUDE_DIR "$ENV{CUB_DIR}/cub")
-
 
 set(INC_DIRS
    "include"
    "${CUDA_API_WRAPPERS_INCLUDE_DIR}"
-   "${CUB_INCLUDE_DIR}"
    )
 
 include_directories( "${INC_DIRS}" )
