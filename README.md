@@ -55,6 +55,3 @@ Example command line:
 
 The last value output is the time in milliseconds for the overall GPU execution including memory transfer to and from the GPU
 
-## FindCUDAAPIWrapper CMake Module
-I also included my version of the FindCUDAAPIWrapper Cmake module and even a BASH script to install it. This will help my CMakeLists.txt find
-Cmake module for cuda-api-wrapper
