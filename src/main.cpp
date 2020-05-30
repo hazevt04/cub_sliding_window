@@ -1,5 +1,6 @@
 // C++ File for main
 #include <getopt.h>
+#include "KernelSel.h"
 #include "SlidingWindow.cuh"
 
 void print_usage( const char* prog_name ) {
@@ -9,15 +10,21 @@ void print_usage( const char* prog_name ) {
    " Options:\n"
    "--num_vals <n>:     Number of Values\n"
    "--window_size <w>:  Window Size\n"
+   "--kernel_sel <k>    Kernel Selector. One of:\n"
+   "                      1 - Rolled\n"
+   "                      2 - Unrolled by 2\n"
+   "                      4 - Unrolled by 4\n"
+   "                      8 - Unrolled by 8\n"
    "--debug <d>:        Increased verbosity for debug\n"
    "--help <h>:         Show help\n";
-    exit(1);
+    exit(EXIT_SUCCESS);
 }
 
 typedef struct args_s {
    int num_vals;
    int window_size;
    int num_results;
+   KernelSel kernel_sel;
    bool debug;
 } args_t;
 
@@ -25,14 +32,16 @@ typedef struct args_s {
 void get_args( args_t& args, int argc, char** argv ) {
 
    try {
-      const char* const short_opts = "n:w:dh";
+      const char* const short_opts = "n:w:k:dh";
       const option long_opts[] = {
          {"num_vals", required_argument, nullptr, 'n'},
          {"window_size", required_argument, nullptr, 'w'},
+         {"kernel_sel", optional_argument, nullptr, 'k'},
          {"debug", no_argument, nullptr, 'd'},
          {"help", no_argument, nullptr, 'h'},
          {nullptr, no_argument, nullptr, 0}
       };
+      int temp_kernel_sel = 1;
       while (true) {
          const auto opt = getopt_long(argc, argv, short_opts, long_opts, nullptr);
 
@@ -45,6 +54,10 @@ void get_args( args_t& args, int argc, char** argv ) {
             break;
          case 'w':
             args.window_size = std::strtol(optarg, nullptr, 10);
+            break;
+         case 'k':
+            temp_kernel_sel = std::strtol(optarg, nullptr, 10);
+            args.kernel_sel = static_cast<KernelSel>(temp_kernel_sel);
             break;
          case 'h': // -h or --help
             print_usage( argv[0] );
@@ -59,9 +72,10 @@ void get_args( args_t& args, int argc, char** argv ) {
       } // end of while (true)
       args.num_results = args.num_vals - args.window_size;
       if ( args.debug ) {
-         std::cout << "Num Vals set to: " << args.num_vals << std::endl;
-         std::cout << "Window Size Vals set to: " << args.window_size << std::endl;
-         std::cout << "Num Results set to " << args.num_results << std::endl;
+         std::cout << "Num Vals set to: " << args.num_vals << "\n";
+         std::cout << "Window Size Vals set to: " << args.window_size << "\n";
+         std::cout << "Kernel Select set to " << args.kernel_sel << "\n";
+         std::cout << "Num Results set to " << args.num_results << "\n";
       }
    } catch( std::exception& ex ) {
       std::cout << __func__ << "(): ERROR: " << ex.what() << std::endl;
@@ -79,6 +93,7 @@ void run_kernel( const args_t& args ) {
       config.num_vals = args.num_vals;
       config.window_size = args.window_size;
       config.num_results = args.num_results;
+      config.kernel_sel = args.kernel_sel;
       config.debug = args.debug;
 
       //SlidingWindow sliding_window( num_vals, window_size, debug );
@@ -95,6 +110,7 @@ int main(int argc, char **argv) {
       args_t args;
       args.window_size = 4000;
       args.num_vals = 1000000;
+      args.kernel_sel = KernelSel::rolled_sel;
       args.debug = false;
        
       get_args( args, argc, argv );

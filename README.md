@@ -42,6 +42,11 @@ Outputs the num_vals,window_size, and GPU execution time in milliseconds
  Options:
 --num_vals <n>:     Number of Values
 --window_size <w>:  Window Size
+--kernel_sel <k>:   Kernel Selector. One of:
+                      1 - Rolled
+                      2 - Unrolled by 2
+                      4 - Unrolled by 4
+                      8 - Unrolled by 8
 --debug <d>:        Increased verbosity for debug
 --help <h>:         Show help
 ```

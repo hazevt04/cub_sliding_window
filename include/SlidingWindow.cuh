@@ -7,6 +7,7 @@
 #include <iomanip>
 
 #include "cuda_utils.h"
+#include "KernelSel.h"
 #include "sliding_window_kernel.cuh"
 #include "SlidingWindowConfig.cuh"
 
@@ -15,7 +16,8 @@ class SlidingWindow {
       SlidingWindow() {
          debug = false;
       }
-      SlidingWindow( int new_num_vals, int new_window_size, bool new_debug );
+      SlidingWindow( int new_num_vals, int new_window_size, 
+         KernelSel new_kernel_sel, bool new_debug );
       SlidingWindow( const SlidingWindowConfig& config );
       // Move constructor
       SlidingWindow( SlidingWindow&& other ) noexcept;
@@ -42,6 +44,7 @@ class SlidingWindow {
       int num_vals;
       int window_size;
       int num_results;
+      KernelSel kernel_sel;
       bool debug;
 
 };

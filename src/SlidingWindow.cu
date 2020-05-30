@@ -2,8 +2,9 @@
 #include "SlidingWindow.cuh"
 
 SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size, 
-   bool new_debug = false ) : num_vals( new_num_vals ),
+   KernelSel new_kernel_sel, bool new_debug = false ) : num_vals( new_num_vals ),
       window_size( new_window_size ),
+      kernel_sel( new_kernel_sel ),
       debug( new_debug ) {
 
    num_results = new_num_vals - new_window_size;
@@ -22,6 +23,7 @@ SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size,
 SlidingWindow::SlidingWindow( const SlidingWindowConfig& config ):
       num_vals( config.num_vals ),
       window_size( config.window_size ),
+      kernel_sel( config.kernel_sel ),
       num_results( config.num_results ),
       debug( config.debug ) {
 
@@ -40,6 +42,7 @@ SlidingWindow::SlidingWindow( const SlidingWindowConfig& config ):
 SlidingWindow::SlidingWindow( SlidingWindow&& other ) noexcept {
    num_vals = other.num_vals;
    window_size = other.window_size;
+   kernel_sel = other.kernel_sel;
    debug = other.debug;
    num_results = other.num_results;
 
@@ -53,6 +56,7 @@ SlidingWindow::SlidingWindow( SlidingWindow&& other ) noexcept {
    other.num_vals = 0;
    other.window_size = 0;
    other.num_results = 0;
+   other.kernel_sel = KernelSel::rolled_sel;
 
    other.h_vals.reset();
    other.h_results = nullptr;
@@ -69,6 +73,7 @@ SlidingWindow& SlidingWindow::operator=( SlidingWindow&& other ) noexcept {
    if ( this != &other ) {
       num_vals = other.num_vals;
       window_size = other.window_size;
+      kernel_sel = other.kernel_sel;
       num_results = other.num_results;
       debug = other.debug;
 
@@ -86,6 +91,7 @@ SlidingWindow& SlidingWindow::operator=( SlidingWindow&& other ) noexcept {
       other.num_vals = 0;
       other.window_size = 0;
       other.num_results = 0;
+      other.kernel_sel = KernelSel::rolled_sel;
    }
    return *this;
 }
@@ -100,6 +106,7 @@ SlidingWindow::~SlidingWindow() {
    d_results.reset();
    num_vals = 0;
    num_results = 0;
+   kernel_sel = KernelSel::rolled_sel;
    window_size = 0;
 }
 
@@ -188,6 +195,7 @@ void SlidingWindow::run() {
       std::cout << "Num Vals = " << num_vals << "\n";
       std::cout << "Window Size = " << window_size << "\n";
       std::cout << "Num Vals Windowed = " << num_results << "\n";
+      std::cout << "Kernel Select = " << get_kernel_sel_str( kernel_sel ) << "\n";
       std::cout << "Vals: \n";
       for( int index = 0; index < num_vals; ++index ) {
          std::cout << "[" << index << "] {" 
@@ -215,18 +223,56 @@ void SlidingWindow::run() {
    cuda::memory::copy( d_vals.get(), h_vals.get(), size_vals );
    
    if ( debug ) {
-      std::cout << "CUDA kernel launch with " << blocks_per_grid
+      std::cout << "CUDA kernel " << get_kernel_sel_str( kernel_sel ) 
+         << " launch with " << blocks_per_grid
          << " blocks of " << threads_per_block << " threads\n";
    }
 
-   cuda::launch(
-      //sliding_window,
-      //sliding_window_unrolled_2x_inner,
-      sliding_window_unrolled_4x_inner,
-      //sliding_window_unrolled_8x_inner,
-      launch_configuration,
-      d_results.get(), d_vals.get(), window_size, num_results
-   );
+   // TODO: Figure out how to make the switch only set the 
+   // Kernel variable and then do cuda::launch() after the
+   // switch block
+   switch( kernel_sel ) {
+      case KernelSel::rolled_sel:
+         std::cout << "Rolled Kernel\n";
+         cuda::launch(
+            sliding_window,
+            launch_configuration,
+            d_results.get(), d_vals.get(), window_size, num_results
+         );
+         break;
+      case KernelSel::unrolled2x_sel:
+         std::cout << "Unrolled 2x Kernel\n";
+         cuda::launch(
+            sliding_window_unrolled_2x_inner,
+            launch_configuration,
+            d_results.get(), d_vals.get(), window_size, num_results
+         );
+         break;
+      case KernelSel::unrolled4x_sel:
+         std::cout << "Unrolled 4x Kernel\n";
+         cuda::launch(
+            sliding_window_unrolled_4x_inner,
+            launch_configuration,
+            d_results.get(), d_vals.get(), window_size, num_results
+         );
+         break;
+      case KernelSel::unrolled8x_sel:
+         std::cout << "Unrolled 8x Kernel\n";
+         cuda::launch(
+            sliding_window_unrolled_8x_inner,
+            launch_configuration,
+            d_results.get(), d_vals.get(), window_size, num_results
+         );
+         break;
+      default:
+         std::cout << "Rolled Kernel\n";
+         cuda::launch(
+            sliding_window,
+            launch_configuration,
+            d_results.get(), d_vals.get(), window_size, num_results
+         );
+         break;
+   } // end of switch
 
    cuda::memory::copy( h_results.get(), d_results.get(), size_results );
    
