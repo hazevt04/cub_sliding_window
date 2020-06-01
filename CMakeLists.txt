@@ -14,8 +14,8 @@ find_package(CUDAAPIWrappers QUIET REQUIRED)
 
 # Selects GPU arch flags for nvcc based on target_CUDA_architectures
 # Jetson Xavier GPUs are compute capability 7.2, Tegra X2, and Geforce GTX 1050 are 6.1
-#cuda_select_nvcc_arch_flags(ARCH_FLAGS 7.2)
-cuda_select_nvcc_arch_flags(ARCH_FLAGS 6.1)
+cuda_select_nvcc_arch_flags(ARCH_FLAGS 7.2)
+#cuda_select_nvcc_arch_flags(ARCH_FLAGS 6.1)
 
 list(APPEND CUDA_NVCC_FLAGS ${ARCH_FLAGS})
 list(APPEND CUDA_NVCC_FLAGS "--ptxas-options=-v")

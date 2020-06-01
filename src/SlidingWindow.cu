@@ -8,14 +8,22 @@ SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size,
       debug( new_debug ) {
 
    num_results = new_num_vals - new_window_size;
-
-   h_vals = cuda::memory::host::make_unique<float2[]>( new_num_vals );
-   h_results = cuda::memory::host::make_unique<float2[]>( num_results );
-   expected_results = cuda::memory::host::make_unique<float2[]>( num_results );
+   size_t vals_size = new_num_vals * sizeof(float2);
+   size_t results_size = num_results * sizeof(float2);
 
    auto current_device = cuda::device::current::get();
-   d_vals = cuda::memory::device::make_unique<float2[]>(current_device, new_num_vals);
-   d_results = cuda::memory::device::make_unique<float2[]>(current_device, num_results);
+   // initial_visibility != initial_visibility_t::to_all_devices implies cudaMemAttachHost flag for CUDA host memory allocation
+   vals = cuda::memory::managed::make_unique<float2[]>( vals_size,
+        current_device.supports_concurrent_managed_access() ?
+			cuda::memory::managed::initial_visibility_t::to_supporters_of_concurrent_managed_access:
+			cuda::memory::managed::initial_visibility_t::to_all_devices );
+
+   results = cuda::memory::managed::make_unique<float2[]>( results_size );
+   expected_results = cuda::memory::managed::make_unique<float2[]>( results_size );
+
+   /*auto current_device = cuda::device::current::get();*/
+   /*vals = cuda::memory::device::make_unique<float2[]>(current_device, new_num_vals);*/
+   /*results = cuda::memory::device::make_unique<float2[]>(current_device, num_results);*/
    
 }
 
@@ -26,14 +34,24 @@ SlidingWindow::SlidingWindow( const SlidingWindowConfig& config ):
       kernel_sel( config.kernel_sel ),
       num_results( config.num_results ),
       debug( config.debug ) {
-
-   h_vals = cuda::memory::host::make_unique<float2[]>( config.num_vals );
-   h_results = cuda::memory::host::make_unique<float2[]>( config.num_results );
-   expected_results = cuda::memory::host::make_unique<float2[]>( config.num_results );
-
+   
+   size_t vals_size = config.num_vals * sizeof(float2);
+   size_t results_size = config.num_results * sizeof(float2);
+   
    auto current_device = cuda::device::current::get();
-   d_vals = cuda::memory::device::make_unique<float2[]>(current_device, config.num_vals);
-   d_results = cuda::memory::device::make_unique<float2[]>(current_device, config.num_results);
+
+   // initial_visibility != initial_visibility_t::to_all_devices implies cudaMemAttachHost flag for CUDA host memory allocation
+   vals = cuda::memory::managed::make_unique<float2[]>( vals_size,
+        current_device.supports_concurrent_managed_access() ?
+			cuda::memory::managed::initial_visibility_t::to_supporters_of_concurrent_managed_access:
+			cuda::memory::managed::initial_visibility_t::to_all_devices );
+
+   results = cuda::memory::managed::make_unique<float2[]>( results_size );
+   expected_results = cuda::memory::managed::make_unique<float2[]>( results_size );
+
+   /*auto current_device = cuda::device::current::get();*/
+   /*vals = cuda::memory::device::make_unique<float2[]>(current_device, config.num_vals);*/
+   /*results = cuda::memory::device::make_unique<float2[]>(current_device, config.num_results);*/
    
 }
 
@@ -46,24 +64,24 @@ SlidingWindow::SlidingWindow( SlidingWindow&& other ) noexcept {
    debug = other.debug;
    num_results = other.num_results;
 
-   h_vals = std::move( other.h_vals );
-   h_results = std::move(other.h_results);
+   vals = std::move( other.vals );
+   results = std::move(other.results);
    expected_results = std::move(other.expected_results);
    
-   d_vals = std::move( other.d_vals );
-   d_results = std::move( other.d_results );
+   vals = std::move( other.vals );
+   results = std::move( other.results );
 
    other.num_vals = 0;
    other.window_size = 0;
    other.num_results = 0;
    other.kernel_sel = KernelSel::rolled_sel;
 
-   other.h_vals.reset();
-   other.h_results = nullptr;
+   other.vals.reset();
+   other.results = nullptr;
    other.expected_results = nullptr;
 
-   other.d_vals = nullptr;
-   other.d_results = nullptr;
+   other.vals = nullptr;
+   other.results = nullptr;
    
 }
 
@@ -77,15 +95,15 @@ SlidingWindow& SlidingWindow::operator=( SlidingWindow&& other ) noexcept {
       num_results = other.num_results;
       debug = other.debug;
 
-      h_vals = std::move( other.h_vals );
-      h_results = std::move( other.h_results );
+      vals = std::move( other.vals );
+      results = std::move( other.results );
       expected_results = std::move( other.expected_results );
 
-      d_vals = std::move( other.d_vals );
-      d_results = std::move( other.d_results );
+      vals = std::move( other.vals );
+      results = std::move( other.results );
       
-      other.h_vals.reset();
-      other.h_results.reset();
+      other.vals.reset();
+      other.results.reset();
       other.expected_results.reset();
 
       other.num_vals = 0;
@@ -98,12 +116,12 @@ SlidingWindow& SlidingWindow::operator=( SlidingWindow&& other ) noexcept {
 
 SlidingWindow::~SlidingWindow() {
 
-   h_vals.reset();
-   h_results.reset();
+   vals.reset();
+   results.reset();
    expected_results.reset();
 
-   d_vals.reset();
-   d_results.reset();
+   vals.reset();
+   results.reset();
    num_vals = 0;
    num_results = 0;
    kernel_sel = KernelSel::rolled_sel;
@@ -113,8 +131,8 @@ SlidingWindow::~SlidingWindow() {
 
 void SlidingWindow::gen_vals() {
    for( int index = 0; index < num_vals; ++index ) {
-      h_vals.get()[index].x = (float)index;
-      h_vals.get()[index].y = (float)index;
+      vals.get()[index].x = (float)index;
+      vals.get()[index].y = (float)index;
    }   
 }
 
@@ -125,16 +143,16 @@ void SlidingWindow::gen_expected() {
    expected_results.get()[0].y = 0.f;
 
    for( int s_index = 0; s_index < window_size; ++s_index ) {
-      expected_results.get()[0].x += h_vals.get()[s_index].x;
-      expected_results.get()[0].y += h_vals.get()[s_index].y;
+      expected_results.get()[0].x += vals.get()[s_index].x;
+      expected_results.get()[0].y += vals.get()[s_index].y;
    }
 
    float prev_x_sum = expected_results.get()[0].x;
    float prev_y_sum = expected_results.get()[0].y;
 
    for ( int index = 1; index < num_results; ++index ) {
-      expected_results.get()[index].x = prev_x_sum - h_vals.get()[index-1].x + h_vals.get()[index + window_size - 1].x;
-      expected_results.get()[index].y = prev_y_sum - h_vals.get()[index-1].y + h_vals.get()[index + window_size - 1].y;
+      expected_results.get()[index].x = prev_x_sum - vals.get()[index-1].x + vals.get()[index + window_size - 1].x;
+      expected_results.get()[index].y = prev_y_sum - vals.get()[index-1].y + vals.get()[index + window_size - 1].y;
       prev_x_sum = expected_results.get()[index].x;
       prev_y_sum = expected_results.get()[index].y;
    }
@@ -160,15 +178,15 @@ void SlidingWindow::check_results() {
       constexpr int num_places = 9; 
       for ( int index = 0; index < num_results; ++index ) {
       
-         if (( fabs( expected_results.get()[index].x - h_results.get()[index].x ) > comp_prec) || 
-            ( fabs( expected_results.get()[index].y - h_results.get()[index].y ) > comp_prec )) {
+         if (( fabs( expected_results.get()[index].x - results.get()[index].x ) > comp_prec) || 
+            ( fabs( expected_results.get()[index].y - results.get()[index].y ) > comp_prec )) {
             
             std::cout << "Actual Result " 
                << index 
                << std::setprecision( num_places )
-               << ": {" << h_results.get()[index].x
+               << ": {" << results.get()[index].x
                << std::setprecision( num_places )
-               << "," << h_results.get()[index].y 
+               << "," << results.get()[index].y 
                << "} does not match the expected "
                << index 
                << std::setprecision( num_places )
@@ -199,15 +217,16 @@ void SlidingWindow::run() {
       std::cout << "Vals: \n";
       for( int index = 0; index < num_vals; ++index ) {
          std::cout << "[" << index << "] {" 
-            << h_vals.get()[index].x << ", " << h_vals.get()[index].y << "}\n ";
+            << vals.get()[index].x << ", " << vals.get()[index].y << "}\n ";
       } 
       std::cout << "\n"; 
    }
-   
+
    int threads_per_block = 1024;
    int blocks_per_grid = CEILING( num_results, threads_per_block );
-   cuda::grid::dimensions_t grid_dims( blocks_per_grid, 1, 1 );
-   cuda::grid::dimensions_t block_dims( threads_per_block, 1, 1 );
+
+   cuda::grid_dimensions_t grid_dims( blocks_per_grid, 1, 1 );
+   cuda::grid_dimensions_t block_dims( threads_per_block, 1, 1 );
    cuda::memory::shared::size_t s_mem_size( 0u );
    cuda::launch_configuration_t launch_configuration = cuda::make_launch_config( grid_dims, 
          block_dims, s_mem_size );
@@ -215,67 +234,70 @@ void SlidingWindow::run() {
    Time_Point start;
    Duration_ms duration_ms;
    
-   size_t size_vals = num_vals * sizeof(float2);
-   size_t size_results = num_results * sizeof(float2);
+   //size_t size_vals = num_vals * sizeof(float2);
+   //size_t size_results = num_results * sizeof(float2);
 
    start = Steady_Clock::now();
-   
-   cuda::memory::copy( d_vals.get(), h_vals.get(), size_vals );
    
    if ( debug ) {
       std::cout << "CUDA kernel " << get_kernel_sel_str( kernel_sel ) 
          << " launch with " << blocks_per_grid
          << " blocks of " << threads_per_block << " threads\n";
    }
-
+   
+   auto device = cuda::device::current::get();
+   auto stream = device.create_stream(cuda::stream::async);
+   
    // TODO: Figure out how to make the switch only set the 
    // Kernel variable and then do cuda::launch() after the
    // switch block
    switch( kernel_sel ) {
       case KernelSel::rolled_sel:
          std::cout << "Rolled Kernel\n";
-         cuda::launch(
+         stream.enqueue.kernel_launch(
             sliding_window,
             launch_configuration,
-            d_results.get(), d_vals.get(), window_size, num_results
+            results.get(), vals.get(), window_size, num_results
          );
          break;
       case KernelSel::unrolled2x_sel:
          std::cout << "Unrolled 2x Kernel\n";
-         cuda::launch(
+         stream.enqueue.kernel_launch(
             sliding_window_unrolled_2x_inner,
             launch_configuration,
-            d_results.get(), d_vals.get(), window_size, num_results
+            results.get(), vals.get(), window_size, num_results
          );
          break;
       case KernelSel::unrolled4x_sel:
          std::cout << "Unrolled 4x Kernel\n";
-         cuda::launch(
+         stream.enqueue.kernel_launch(
             sliding_window_unrolled_4x_inner,
             launch_configuration,
-            d_results.get(), d_vals.get(), window_size, num_results
+            results.get(), vals.get(), window_size, num_results
          );
          break;
       case KernelSel::unrolled8x_sel:
          std::cout << "Unrolled 8x Kernel\n";
-         cuda::launch(
+         stream.enqueue.kernel_launch(
             sliding_window_unrolled_8x_inner,
             launch_configuration,
-            d_results.get(), d_vals.get(), window_size, num_results
+            results.get(), vals.get(), window_size, num_results
          );
          break;
       default:
          std::cout << "Rolled Kernel\n";
-         cuda::launch(
+         stream.enqueue.kernel_launch(
             sliding_window,
             launch_configuration,
-            d_results.get(), d_vals.get(), window_size, num_results
+            results.get(), vals.get(), window_size, num_results
          );
          break;
    } // end of switch
-
-   cuda::memory::copy( h_results.get(), d_results.get(), size_results );
    
+
+   stream.enqueue.memory_attachment(results.get());
+   stream.synchronize();
+
    duration_ms = Steady_Clock::now() - start;
    std::cout << num_vals << "," << window_size << "," << duration_ms.count() << ";\n";
 
@@ -284,8 +306,8 @@ void SlidingWindow::run() {
    if ( debug ) {
       std::cout << "Results: \n";
       for( int index = 0; index < num_results; ++index ) {
-         std::cout << "[" << index << "]: {" << h_results.get()[index].x << ", " 
-            << h_results.get()[index].y << "}\n";
+         std::cout << "[" << index << "]: {" << results.get()[index].x << ", " 
+            << results.get()[index].y << "}\n";
       } 
       std::cout << "\n"; 
    }   
