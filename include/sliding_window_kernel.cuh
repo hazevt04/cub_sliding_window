@@ -20,4 +20,36 @@ __global__ void sliding_window_unrolled_4x_inner(float2* __restrict__ results, f
 __global__ void sliding_window_unrolled_8x_inner(float2* __restrict__ results, float2* const __restrict__ vals, 
     const int window_size, const int num_results );
 
+// template<int unroll_factor>
+// __global__ void sliding_window_unrolled( float2* __restrict__ results, float2* const __restrict__ vals,
+//    const int window_size, const int num_results );
+//
+// template
+// __global__ void sliding_window_unrolled<1>( float2* __restrict__ results, float2* const __restrict__ vals,
+//    const int window_size, const int num_results );
+//
+// template
+// __global__ void sliding_window_unrolled<2>( float2* __restrict__ results, float2* const __restrict__ vals,
+//    const int window_size, const int num_results );
+//
+// __global__ void sliding_window_unrolled<4>( float2* __restrict__ results, float2* const __restrict__ vals,
+//    const int window_size, const int num_results );
+//
+// __global__ void sliding_window_unrolled<8>( float2* __restrict__ results, float2* const __restrict__ vals,
+//    const int window_size, const int num_results );
+
+// __global__ void sliding_window_unrolled<1>( float2* __restrict__ results, float2* const __restrict__ vals,
+// __global__ void sliding_window_unrolled<1>( float2* __restrict__ results, float2* const __restrict__ vals,
+// __global__ void sliding_window_unrolled<1>( float2* __restrict__ results, float2* const __restrict__ vals,
+//    const int window_size, const int num_results );
+//
+// __global__ void sliding_window_unrolled<2>( float2* __restrict__ results, float2* const __restrict__ vals,
+//    const int window_size, const int num_results );
+//
+// __global__ void sliding_window_unrolled<4>( float2* __restrict__ results, float2* const __restrict__ vals,
+//    const int window_size, const int num_results );
+//
+// __global__ void sliding_window_unrolled<8>( float2* __restrict__ results, float2* const __restrict__ vals,
+//    const int window_size, const int num_results );
+//
 #endif

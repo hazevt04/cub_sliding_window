@@ -185,7 +185,6 @@ void SlidingWindow::check_results() {
    }
 }
 
-
 void SlidingWindow::run() {
 
    gen_vals();
