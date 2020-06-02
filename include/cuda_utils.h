@@ -138,4 +138,17 @@
    (lhs).y = (rhs).y; \
 }
 
+
+inline std::string decode_cache_pref( enum cudaFuncCache cache_pref ) {
+   std::vector<std::string> cache_pref_strings{
+      "Default function cache configuration, no preference",
+      "Prefer larger shared memory and smaller L1 cache",
+      "Prefer larger L1 cache and smaller shared memory"
+   };
+     
+   int cache_pref_index = static_cast<int>(cache_pref);
+   return cache_pref_strings.at(cache_pref_index);
+}
+
+
 #endif // ifndef _CUDA_UTILS_H_

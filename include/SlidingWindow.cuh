@@ -33,14 +33,19 @@ class SlidingWindow {
       // No copying allowed!
       SlidingWindow( const SlidingWindow& other );
       SlidingWindow& operator=( const SlidingWindow& other );
+      inline void check_cache_pref( cuda::device_t<cuda::detail::assume_device_is_current> device ) {
+         auto cache_pref = device.cache_preference();
+         enum cudaFuncCache t_cache_pref = static_cast<enum cudaFuncCache>(cache_pref);
+         // decode_cache_pref() is in cuda_utils.h and does not depend on cuda-api-wrappers
+         // It directly uses the cudaFuncCache enum.
+         std::cout << "Cache Preference is " << 
+            decode_cache_pref(t_cache_pref) << "\n"; 
+      }
 
       cuda::memory::managed::unique_ptr<float2 []> vals;
       cuda::memory::managed::unique_ptr<float2 []> results;
       cuda::memory::managed::unique_ptr<float2 []> expected_results;
       
-      //cuda::memory::device::unique_ptr<float2 []> d_vals;
-      //cuda::memory::device::unique_ptr<float2 []> d_results;
-
       int num_vals;
       int window_size;
       int num_results;

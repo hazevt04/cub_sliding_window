@@ -12,7 +12,16 @@ SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size,
    size_t results_size = num_results * sizeof(float2);
 
    auto current_device = cuda::device::current::get();
-   // initial_visibility != initial_visibility_t::to_all_devices implies cudaMemAttachHost flag for CUDA host memory allocation
+   
+   check_cache_pref( current_device );
+   
+   // Not using shared memory
+   current_device.set_cache_preference(cuda::multiprocessor_cache_preference_t::prefer_l1);
+   
+   check_cache_pref( current_device );
+
+   // initial_visibility != initial_visibility_t::to_all_devices implies cudaMemAttachHost 
+   // flag for CUDA host memory allocation
    vals = cuda::memory::managed::make_unique<float2[]>( vals_size,
         current_device.supports_concurrent_managed_access() ?
 			cuda::memory::managed::initial_visibility_t::to_supporters_of_concurrent_managed_access:
@@ -21,7 +30,6 @@ SlidingWindow::SlidingWindow( int new_num_vals, int new_window_size,
    results = cuda::memory::managed::make_unique<float2[]>( results_size );
    expected_results = cuda::memory::managed::make_unique<float2[]>( results_size );
 
-   /*auto current_device = cuda::device::current::get();*/
    /*vals = cuda::memory::device::make_unique<float2[]>(current_device, new_num_vals);*/
    /*results = cuda::memory::device::make_unique<float2[]>(current_device, num_results);*/
    
@@ -39,8 +47,16 @@ SlidingWindow::SlidingWindow( const SlidingWindowConfig& config ):
    size_t results_size = config.num_results * sizeof(float2);
    
    auto current_device = cuda::device::current::get();
+   
+   check_cache_pref( current_device );
+   
+   // Not using shared memory
+   current_device.set_cache_preference(cuda::multiprocessor_cache_preference_t::prefer_l1);
+   
+   check_cache_pref( current_device );
 
-   // initial_visibility != initial_visibility_t::to_all_devices implies cudaMemAttachHost flag for CUDA host memory allocation
+   // initial_visibility != initial_visibility_t::to_all_devices implies cudaMemAttachHost 
+   // flag for CUDA host memory allocation
    vals = cuda::memory::managed::make_unique<float2[]>( vals_size,
         current_device.supports_concurrent_managed_access() ?
 			cuda::memory::managed::initial_visibility_t::to_supporters_of_concurrent_managed_access:
@@ -49,7 +65,6 @@ SlidingWindow::SlidingWindow( const SlidingWindowConfig& config ):
    results = cuda::memory::managed::make_unique<float2[]>( results_size );
    expected_results = cuda::memory::managed::make_unique<float2[]>( results_size );
 
-   /*auto current_device = cuda::device::current::get();*/
    /*vals = cuda::memory::device::make_unique<float2[]>(current_device, config.num_vals);*/
    /*results = cuda::memory::device::make_unique<float2[]>(current_device, config.num_results);*/
    
@@ -294,7 +309,6 @@ void SlidingWindow::run() {
          break;
    } // end of switch
    
-
    stream.enqueue.memory_attachment(results.get());
    stream.synchronize();
 
