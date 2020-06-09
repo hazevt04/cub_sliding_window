@@ -99,43 +99,74 @@
   } \
 }
 
+
 #ifdef TRY_FAST_MATH
 
-  #define DIVIDE(quotient, numerator,divisor) { \
-    (quotient) = __fdividef((numerator),(divisor)); \
-  }
-  
-  #define DIVIDE_COMPLEX_BY_SCALAR( quotient, numerator, divisor ) { \
-     (quotient).x = __fdividef((numerator).x, (divisor)); \
-     (quotient).y = __fdividef((numerator).y, (divisor)); \
-  }
-   
+__device__ __host__ inline float2 float2_add(float2 left, float2 right) {
+    float2 result;
+    result.x = __fadd_rn( left.x, right.x );
+    result.y = __fadd_rn( left.y, right.y );
+    return result;
+}
+
+// Complex subtraction
+__device__ __host__ inline float2 float2_subtract(float2 left, float2 right) {
+    float2 result;
+    result.x = __fsub_rn( left.x, right.x );
+    result.y = __fsub_rn( left.y, right.y );
+    return result;
+}
+
+// Complex division
+__device__ __host__ inline float2 float2_division(float2 left, float2 right) {
+    float2 result;
+    result.x = __fdividef( left.x, right.x );
+    result.y = __fdividef( left.y, right.y );
+    return result;
+}
+
+// Complex division by scalar
+__device__ __host__ inline float2 float2_division_scalar(float2 left, float scalar_right) {
+    float2 result;
+    result.x = __fdividef( left.x, scalar_right );
+    result.y = __fdividef( left.y, scalar_right );
+    return result;
+}
+
 #else
 
-  #define DIVIDE( quotient, numerator, divisor ) { \
-    (quotient) = (numerator)/(divisor); \
-  }
+// Complex addition
+__device__ __host__ inline float2 float2_add(float2 left, float2 right) {
+    float2 result;
+    result.x = left.x + right.x;
+    result.y = left.y + right.y;
+    return result;
+}
 
-  #define DIVIDE_COMPLEX_BY_SCALAR( quotient, numerator, divisor ) { \
-     (quotient).x = (numerator).x/(divisor); \
-     (quotient).y = (numerator).y/(divisor); \
-  }
+// Complex subtraction
+__device__ __host__ inline float2 float2_subtract(float2 left, float2 right) {
+    float2 result;
+    result.x = left.x - right.x;
+    result.y = left.y - right.y;
+    return result;
+}
+
+// Complex division
+__device__ __host__ inline float2 float2_division(float2 left, float2 right) {
+    float2 result;
+    result.x = left.x / right.x;
+    result.y = left.y / right.y;
+    return result;
+}
+
+// Complex division by scalar
+__device__ __host__ inline float2 float2_division_scalar(float2 left, float scalar_right) {
+    float2 result;
+    result.x = left.x / scalar_right;
+    result.y = left.y / scalar_right;
+    return result;
+}
 
 #endif
-
-#define ADD_COMPLEX( sum, op1, op2 ) { \
-   (sum).x = (op1).x + (op2).x; \
-   (sum).y = (op1).y + (op2).y; \
-}
-
-#define ADD_COMPLEX_WITH_SCALAR( sum, op1, op2 ) { \
-   (sum).x = (op1).x + (op2); \
-   (sum).y = (op1).y + (op2); \
-}
-
-#define ASSIGN_COMPLEX( lhs, rhs ) { \
-   (lhs).x = (rhs).x; \
-   (lhs).y = (rhs).y; \
-}
 
 #endif // ifndef _CUDA_UTILS_H_
