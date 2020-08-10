@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(CUDA QUIET REQUIRED)
-find_package(CUDAAPIWrappers QUIET REQUIRED)
+find_package(cuda-api-wrappers QUIET REQUIRED)
 #include(CompileWithWarnings)
 
 # Selects GPU arch flags for nvcc based on target_CUDA_architectures
