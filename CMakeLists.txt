@@ -10,7 +10,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 #set(CUDA_SEPARABLE_COMPILATION ON)
 find_package(CUDA QUIET REQUIRED)
-find_package(CUDAAPIWrappers QUIET REQUIRED)
+find_package(cuda-api-wrappers QUIET REQUIRED)
 #find_package(CompileWithWarnings QUIET REQUIRED)
 #include(CompileWithWarnings)
 

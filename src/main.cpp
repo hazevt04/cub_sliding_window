@@ -1,5 +1,6 @@
 // C++ File for main
 #include <getopt.h>
+#include "SlidingWindowConfig.cuh"
 #include "SlidingWindow.cuh"
 
 void print_usage( ) {
